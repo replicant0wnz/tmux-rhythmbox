@@ -1,42 +1,23 @@
 #!/usr/bin/env bash
 
-CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$CURRENT_DIR/scripts/helpers.sh"
 
-current_song="#($CURRENT_DIR/scripts/rhythmbox.sh)"
-placeholder="\#{current_song}"
+script="$CURRENT_DIR/scripts/current_song.sh"
 
-do_interpolation() {
-  local string="$1"
-  local interpolated="${string/$placeholder/$current_song}"
-  echo "$interpolated"
-}
+update_song() {
+  local placeholder="\#{$1}"
+  local script="#($2)"
+  local status_line_side=$3
+  local old_status_line=$(get_tmux_option $status_line_side)
+  local new_status_line=${old_status_line/$placeholder/$script}
 
-update_tmux_option() {
-  local option="$1"
-  local option_value="$(get_tmux_option "$option")"
-  local new_option_value="$(do_interpolation "$option_value")"
-  set_tmux_option "$option" "$new_option_value"
-}
-
-set_tmux_option() {
-  local option="$1"
-  local value="$2"
-  tmux set-option -gq "$option" "$value"
-}
-
-get_tmux_option() {
-  local option="$1"
-  local default_value="$2"
-  local option_value="$(tmux show-option -gqv "$option")"
-  if [ -z "$option_value" ]; then
-    echo "$default_value"
-  else
-    echo "$option_value"
-  fi
+  $(set_tmux_option $status_line_side "$new_status_line")
 }
 
 main() {
-  update_tmux_option "status-right"
-  update_tmux_option "status-left"
+  update_song "current_song" "$script" "status-right"
+  update_song "current_song" "$script" "status-left"
 }
+
 main
