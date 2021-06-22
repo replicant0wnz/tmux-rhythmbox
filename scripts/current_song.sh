@@ -3,4 +3,4 @@
 SONG=`rhythmbox-client --print-playing`
 ICON="♫"
 
-echo "$ICON $SONG"
+echo "$ICON  $SONG "
